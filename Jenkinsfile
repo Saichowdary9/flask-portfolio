@@ -9,68 +9,40 @@ pipeline {
 
     stages {
 
-        stage('Clone Github Repository') {
-            steps {
-                git branch: 'main',
-                    url: 'https://github.com/Saichowdary9/jenkins-tutorial.git'
-                sh 'pwd'
-            }
-        }
-
         stage('Build') {
             steps {
-                dir('4-python-jenkins-docker-app') {
-                    sh 'python3 -m py_compile app.py'
-                }
-            }
-        }
-
-        stage('Test') {
-            steps {
-                dir('4-python-jenkins-docker-app') {
-                    sh 'python3 -m unittest discover tests'
-                }
+                sh 'python3 -m py_compile app.py'
             }
         }
 
         stage('Docker Build') {
             steps {
-                dir('4-python-jenkins-docker-app') {
-                    sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
-                }
+                sh 'docker build -t $IMAGE_NAME:$IMAGE_TAG .'
             }
         }
 
         stage('Docker Run') {
             steps {
-                dir('4-python-jenkins-docker-app') {
-                    sh 'docker run --rm $IMAGE_NAME:$IMAGE_TAG'
-                }
+                sh 'docker run --rm $IMAGE_NAME:$IMAGE_TAG'
             }
         }
 
         stage('Docker Tag & Push') {
             steps {
-                dir('4-python-jenkins-docker-app') {
-                    withCredentials([usernamePassword(
-                        credentialsId: 'dockerhub-credentials',
-                        usernameVariable: 'DOCKER_USER',
-                        passwordVariable: 'DOCKER_PASS'
-                    )]) {
-                        sh '''
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
-                        
-                        # Tag with build number
-                        docker tag $IMAGE_NAME:$IMAGE_TAG $DOCKERHUB_REPO:$IMAGE_TAG
-                        
-                        # Tag as latest
-                        docker tag $IMAGE_NAME:$IMAGE_TAG $DOCKERHUB_REPO:latest
-                        
-                        # Push both tags
-                        docker push $DOCKERHUB_REPO:$IMAGE_TAG
-                        docker push $DOCKERHUB_REPO:latest
-                        '''
-                    }
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-credentials',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                    echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+
+                    docker tag $IMAGE_NAME:$IMAGE_TAG $DOCKERHUB_REPO:$IMAGE_TAG
+                    docker tag $IMAGE_NAME:$IMAGE_TAG $DOCKERHUB_REPO:latest
+
+                    docker push $DOCKERHUB_REPO:$IMAGE_TAG
+                    docker push $DOCKERHUB_REPO:latest
+                    '''
                 }
             }
         }
@@ -79,12 +51,6 @@ pipeline {
     post {
         always {
             cleanWs()
-        }
-        success {
-            echo '✅ Pipeline completed successfully!'
-        }
-        failure {
-            echo '❌ Pipeline failed!'
         }
     }
 }

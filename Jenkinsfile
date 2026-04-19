@@ -1,5 +1,5 @@
 pipeline {
-    agent { label 'worker-node' }
+    agent any
 
     environment {
         IMAGE_NAME = "python-app"

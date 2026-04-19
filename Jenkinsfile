@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = "python-app"
-        DOCKERHUB_REPO = "Saichowdary9/python-app"
+        DOCKERHUB_REPO = "saichowdary009/python-app"
         IMAGE_TAG = "${BUILD_NUMBER}"
     }
 

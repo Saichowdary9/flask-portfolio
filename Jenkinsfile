@@ -12,7 +12,7 @@ pipeline {
         stage('Clone Github Repository') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/theshubhamgour/jenkins-tutorial.git'
+                    url: 'https://github.com/Saichowdary9/jenkins-tutorial.git'
                 sh 'pwd'
             }
         }

@@ -5,6 +5,7 @@ pipeline {
         IMAGE_NAME = "python-app"
         DOCKERHUB_REPO = "saichowdary009/python-app"
         IMAGE_TAG = "${BUILD_NUMBER}"
+        CONTAINER_NAME = "flask-app"
     }
 
     stages {
@@ -21,9 +22,15 @@ pipeline {
             }
         }
 
-        stage('Docker Run') {
+        // 🔥 This replaces your old Docker Run (temporary test)
+        stage('Deploy') {
             steps {
-                sh 'docker run --rm $IMAGE_NAME:$IMAGE_TAG'
+                sh '''
+                docker stop $CONTAINER_NAME || true
+                docker rm $CONTAINER_NAME || true
+
+                docker run -d -p 5000:5000 --name $CONTAINER_NAME $IMAGE_NAME:$IMAGE_TAG
+                '''
             }
         }
 
@@ -42,6 +49,8 @@ pipeline {
 
                     docker push $DOCKERHUB_REPO:$IMAGE_TAG
                     docker push $DOCKERHUB_REPO:latest
+
+                    docker logout
                     '''
                 }
             }
@@ -51,6 +60,12 @@ pipeline {
     post {
         always {
             cleanWs()
+        }
+        success {
+            echo '✅ App deployed successfully!'
+        }
+        failure {
+            echo '❌ Pipeline failed!'
         }
     }
 }
